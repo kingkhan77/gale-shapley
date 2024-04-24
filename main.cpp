@@ -4,7 +4,7 @@
 #include <queue>
 #include <algorithm>
 #include <random>
-using std::cout, std::find;
+using std::cout, std::cin, std::find;
 
 class PrettyPrint
 {
@@ -633,8 +633,19 @@ public:
             women.push_back(Person(i));
         }
 
-        // Generate random preferences for men and women
-        generateRandomPreferences();
+        // Ask the user for preference input method
+        char choice;
+        cout << "Generate random preferences or enter manually? (r/m): ";
+        cin >> choice;
+
+        if (choice == 'r') {
+            generateRandomPreferences();
+        } else if (choice == 'm') {
+            getManualPreferences();
+        } else {
+            cout << "Invalid choice. Using random preferences.\n";
+            generateRandomPreferences();
+        }
     }
 
     // Function to generate random preferences for men and women
@@ -655,6 +666,25 @@ public:
             woman.preferences.resize(men.size());
             std::iota(woman.preferences.begin(), woman.preferences.end(), 0);
             std::shuffle(woman.preferences.begin(), woman.preferences.end(), g);
+        }
+    }
+
+    // Function to get manual preferences from the user
+    void getManualPreferences() {
+        for (Person &man : men) {
+            cout << "Enter preferences for Man " << man.id << " (space-separated IDs): ";
+            man.preferences.resize(women.size());
+            for (int &w : man.preferences) {
+                cin >> w;
+            }
+        }
+
+        for (Person &woman : women) {
+            cout << "Enter preferences for Woman " << woman.id << " (space-separated IDs): ";
+            woman.preferences.resize(men.size());
+            for (int &m : woman.preferences) {
+                cin >> m;
+            }
         }
     }
 
