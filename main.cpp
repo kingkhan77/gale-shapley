@@ -1,5 +1,9 @@
 #include <iostream>
-using std::cout;
+#include <vector>
+#include <map>
+#include <queue>
+#include <algorithm>
+using std::cout, std::find;
 
 class PrettyPrint
 {
@@ -595,8 +599,104 @@ int PrettyPrintColors()
     return 0;
 }
 
-int main()
-{
-    PrettyPrintColors();
+
+// Person class representing either a man or a woman
+class Person {
+public:
+    int id;
+    std::vector<int> preferences; // List of preferred partners in order
+    int partner; // ID of the current partner (-1 if single)
+    int proposalIndex; // Index of the next person to propose to
+
+    Person(int id, const std::vector<int>& preferences) :
+        id(id), preferences(preferences), partner(-1), proposalIndex(0) {}
+};
+
+// StableMarriage class to implement the Gale-Shapley algorithm
+class StableMarriage {
+public:
+    std::vector<Person> men;
+    std::vector<Person> women;
+
+    // Constructor to initialize men and women with their preferences
+    StableMarriage(const std::vector<std::vector<int>>& menPreferences,
+                   const std::vector<std::vector<int>>& womenPreferences) {
+        // Create men and women objects
+        for (int i = 0; i < menPreferences.size(); ++i) {
+            men.push_back(Person(i, menPreferences[i]));
+        }
+        for (int i = 0; i < womenPreferences.size(); ++i) {
+            women.push_back(Person(i, womenPreferences[i]));
+        }
+    }
+
+    // Gale-Shapley algorithm implementation
+    void findStableMatching() {
+        std::queue<int> freeMen; // Queue of men who are currently single
+        for (int i = 0; i < men.size(); ++i) {
+            freeMen.push(i);
+        }
+
+        while (!freeMen.empty()) {
+            int manId = freeMen.front();
+            freeMen.pop();
+            Person& man = men[manId];
+
+            // Get the next preferred woman to propose to
+            int womanId = man.preferences[man.proposalIndex++];
+            Person& woman = women[womanId];
+
+            // If woman is free, they become a couple
+            if (woman.partner == -1) {
+                man.partner = womanId;
+                woman.partner = manId;
+            } else {
+                // Check if woman prefers the current man over her partner
+                int currentPartnerId = woman.partner;
+                int currentPartnerRank = std::find(woman.preferences.begin(), woman.preferences.end(), currentPartnerId) - woman.preferences.begin();
+                int newManRank = std::find(woman.preferences.begin(), woman.preferences.end(), manId) - woman.preferences.begin();
+
+                if (newManRank < currentPartnerRank) {
+                    // Woman prefers the new man, so she breaks up with her current partner
+                    men[currentPartnerId].partner = -1;
+                    freeMen.push(currentPartnerId);
+                    man.partner = womanId;
+                    woman.partner = manId;
+                } else {
+                    // Woman prefers her current partner, so the man remains single
+                    freeMen.push(manId);
+                }
+            }
+        }
+    }
+
+    // Print the stable matching
+    void printMatching() {
+        std::cout << "Stable Matching:\n";
+        for (const Person& man : men) {
+            std::cout << "Man " << man.id << " is paired with Woman " << man.partner << std::endl;
+        }
+    }
+};
+
+int main() {
+    // Printing Heading in different colors
+    // PrettyPrintColors();
+    // Example preferences
+    std::vector<std::vector<int>> menPreferences = {
+        {0, 1, 2}, // Man 0's preferences: Woman 0, Woman 1, Woman 2
+        {1, 0, 2}, // Man 1's preferences: Woman 1, Woman 0, Woman 2
+        {1, 2, 0}  // Man 2's preferences: Woman 1, Woman 2, Woman 0
+    };
+    std::vector<std::vector<int>> womenPreferences = {
+        {1, 2, 0}, // Woman 0's preferences: Man 1, Man 2, Man 0
+        {0, 1, 2}, // Woman 1's preferences: Man 0, Man 1, Man 2
+        {2, 0, 1}  // Woman 2's preferences: Man 2, Man 0, Man 1
+    };
+
+    StableMarriage sm(menPreferences, womenPreferences);
+    sm.findStableMatching();
+    sm.printMatching();
+
     return 0;
 }
