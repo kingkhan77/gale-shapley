@@ -1,10 +1,10 @@
-#include <iostream>
+#include <bits/stdc++.h>
 #include <vector>
 #include <map>
 #include <queue>
 #include <algorithm>
 #include <random>
-using std::cout, std::find;
+using namespace std;
 
 class PrettyPrint
 {
@@ -376,7 +376,7 @@ class PrettyPrint
 public:
     PrettyPrint() {}
 
-    PrettyPrint(char s[])
+    PrettyPrint(string s)
     {
         int x;
 
@@ -605,7 +605,7 @@ class Person
 {
 public:
     int id;
-    std::vector<int> preferences; // List of preferred partners in order
+    vector<int> preferences; // List of preferred partners in order
     int partner;                  // ID of the current partner (-1 if single)
     int proposalIndex;            // Index of the next person to propose to
 
@@ -616,8 +616,8 @@ public:
 class StableMarriage
 {
 public:
-    std::vector<Person> men;
-    std::vector<Person> women;
+    vector<Person> men;
+    vector<Person> women;
 
     // Constructor to initialize men and women with their preferences
     StableMarriage(int numMen, int numWomen)
@@ -633,34 +633,64 @@ public:
         }
 
         // Generate random preferences for men and women
-        generateRandomPreferences();
+        // generateRandomPreferences();
+        // Enter preferences for men and women
+        enterManualPreferences();
     }
 
-    // Function to generate random preferences for men and women
-    void generateRandomPreferences()
+    // Function to allow user to enter preferences for men and women
+    void enterManualPreferences() 
     {
-        std::random_device rd;
-        std::mt19937 g(rd());
-
-        for (Person &man : men)
+        cout << "Enter preferences for men:\n";
+        for (int i = 0; i < men.size(); ++i) 
         {
-            man.preferences.resize(women.size());
-            std::iota(man.preferences.begin(), man.preferences.end(), 0);
-            std::shuffle(man.preferences.begin(), man.preferences.end(), g);
+            cout << "Preferences for man " << i + 1 << ": ";
+            for (int j = 0; j < women.size(); ++j) 
+            {
+                int preference;
+                cin >> preference;
+                men[i].preferences.push_back(preference);
+            }
         }
 
-        for (Person &woman : women)
+        cout << "Enter preferences for women:\n";
+        for (int i = 0; i < women.size(); ++i) 
         {
-            woman.preferences.resize(men.size());
-            std::iota(woman.preferences.begin(), woman.preferences.end(), 0);
-            std::shuffle(woman.preferences.begin(), woman.preferences.end(), g);
+            cout << "Preferences for woman " << i + 1 << ": ";
+            for (int j = 0; j < men.size(); ++j) 
+            {
+                int preference;
+                cin >> preference;
+                women[i].preferences.push_back(preference);
+            }
         }
     }
+    
+    // Function to generate random preferences for men and women
+    // void generateRandomPreferences()
+    // {
+    //     random_device rd;
+    //     mt19937 g(rd());
+
+    //     for (Person &man : men)
+    //     {
+    //         man.preferences.resize(women.size());
+    //         std::iota(man.preferences.begin(), man.preferences.end(), 0);
+    //         std::shuffle(man.preferences.begin(), man.preferences.end(), g);
+    //     }
+
+    //     for (Person &woman : women)
+    //     {
+    //         woman.preferences.resize(men.size());
+    //         std::iota(woman.preferences.begin(), woman.preferences.end(), 0);
+    //         std::shuffle(woman.preferences.begin(), woman.preferences.end(), g);
+    //     }
+    // }
 
     // Gale-Shapley algorithm implementation
     void findStableMatching()
     {
-        std::queue<int> freeMen; // Queue of men who are currently single
+        queue<int> freeMen; // Queue of men who are currently single
         for (int i = 0; i < men.size(); ++i)
         {
             freeMen.push(i);
@@ -719,23 +749,24 @@ public:
     // Print the stable matching (including single individuals)
     void printMatching()
     {
-        std::cout << "Stable Matching:\n";
+        cout << "*********************************\nStable Matching Result:\n______________________________\n\n";
+
         for (const Person &man : men)
         {
             if (man.partner != -1)
             {
-                std::cout << "Man " << man.id << " is paired with Woman " << man.partner << std::endl;
+                cout << "Man " << man.id << " --- is paired with ---> Woman " << man.partner << std::endl;
             }
             else
             {
-                std::cout << "Man " << man.id << " is single.\n";
+                cout << "Man " << man.id << " is #single.\n";
             }
         }
         for (const Person &woman : women)
         {
             if (woman.partner == -1)
             {
-                std::cout << "Woman " << woman.id << " is single.\n";
+                std::cout << "Woman " << woman.id << " is #single.\n";
             }
         }
     }
@@ -747,11 +778,11 @@ int main()
     // PrettyPrintColors();
     int numMen, numWomen;
 
-    std::cout << "Enter the number of men: ";
-    std::cin >> numMen;
+    cout << "Enter the number of men: ";
+    cin >> numMen;
 
-    std::cout << "Enter the number of women: ";
-    std::cin >> numWomen;
+    cout << "Enter the number of women: ";
+    cin >> numWomen;
 
     StableMarriage sm(numMen, numWomen);
     sm.findStableMatching();
