@@ -618,9 +618,10 @@ class StableMarriage
 public:
     std::vector<Person> men;
     std::vector<Person> women;
+    bool maleOptimal;
 
     // Constructor to initialize men and women with their preferences
-    StableMarriage(int numMen, int numWomen)
+    StableMarriage(int numMen, int numWomen, bool maleOptimal = true) : maleOptimal(maleOptimal)
     {
         // Create men and women objects
         for (int i = 0; i < numMen; ++i)
@@ -657,8 +658,14 @@ public:
         }
     }
 
-    // Gale-Shapley algorithm implementation
-    void findStableMatching()
+    void findStableMatching() {
+        if (maleOptimal) {
+            findStableMatchingMaleOptimal();
+        } else {
+            findStableMatchingFemaleOptimal();
+        }
+    }
+    void findStableMatchingMaleOptimal()
     {
         std::queue<int> freeMen; // Queue of men who are currently single
         for (int i = 0; i < men.size(); ++i)
@@ -716,6 +723,47 @@ public:
         }
     }
 
+    void findStableMatchingFemaleOptimal() {
+        std::queue<int> freeWomen; // Queue of women who are currently single
+        for (int i = 0; i < women.size(); ++i) {
+            freeWomen.push(i);
+        }
+
+        while (!freeWomen.empty()) {
+            int womanId = freeWomen.front();
+            freeWomen.pop();
+            Person &woman = women[womanId];
+
+            if (woman.proposalIndex >= woman.preferences.size()) {
+                continue; // Woman has proposed to everyone, remains single
+            }
+
+            int manId = woman.preferences[woman.proposalIndex++];
+            if (manId >= men.size()) {
+                continue; // Invalid preference, skip to next
+            }
+
+            Person &man = men[manId];
+
+            if (man.partner == -1) {
+                man.partner = womanId;
+                woman.partner = manId;
+            } else {
+                int currentPartnerId = man.partner;
+                int currentPartnerRank = std::find(man.preferences.begin(), man.preferences.end(), currentPartnerId) - man.preferences.begin();
+                int newWomanRank = std::find(man.preferences.begin(), man.preferences.end(), womanId) - man.preferences.begin();
+
+                if (newWomanRank < currentPartnerRank) {
+                    women[currentPartnerId].partner = -1;
+                    freeWomen.push(currentPartnerId);
+                    man.partner = womanId;
+                    woman.partner = manId;
+                } else {
+                    freeWomen.push(womanId);
+                }
+            }
+        }
+    }
     // Print the stable matching (including single individuals)
     void printMatching()
     {
@@ -746,16 +794,22 @@ int main()
     // Printing Heading in different colors
     // PrettyPrintColors();
     int numMen, numWomen;
-
     std::cout << "Enter the number of men: ";
     std::cin >> numMen;
-
     std::cout << "Enter the number of women: ";
     std::cin >> numWomen;
 
-    StableMarriage sm(numMen, numWomen);
-    sm.findStableMatching();
-    sm.printMatching();
+    // Male-optimal matching
+    StableMarriage smMale(numMen, numWomen, true);
+    smMale.findStableMatching();
+    std::cout << "\nMale-Optimal Matching:\n";
+    smMale.printMatching();
+
+    // Female-optimal matching
+    StableMarriage smFemale(numMen, numWomen, false);
+    smFemale.findStableMatching();
+    std::cout << "\nFemale-Optimal Matching:\n";
+    smFemale.printMatching();
 
     return 0;
 }
