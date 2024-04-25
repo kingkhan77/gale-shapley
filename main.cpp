@@ -4,7 +4,8 @@
 #include <queue>
 #include <algorithm>
 #include <random>
-using std::cout, std::cin, std::find;
+#include <ctime>
+using namespace std;
 
 class PrettyPrint
 {
@@ -376,7 +377,7 @@ class PrettyPrint
 public:
     PrettyPrint() {}
 
-    PrettyPrint(char s[])
+    PrettyPrint(string s)
     {
         int x;
 
@@ -657,8 +658,8 @@ public:
         for (Person &man : men)
         {
             man.preferences.resize(women.size());
-            std::iota(man.preferences.begin(), man.preferences.end(), 0);
-            std::shuffle(man.preferences.begin(), man.preferences.end(), g);
+            iota(man.preferences.begin(), man.preferences.end(), 0);
+            shuffle(man.preferences.begin(), man.preferences.end(), g);
         }
 
         for (Person &woman : women)
@@ -670,7 +671,8 @@ public:
     }
 
     // Function to get manual preferences from the user
-    void getManualPreferences() {
+    void getManualPreferences() 
+    {
         for (Person &man : men) {
             cout << "Enter preferences for Man " << man.id << " (space-separated IDs): ";
             man.preferences.resize(women.size());
@@ -688,14 +690,16 @@ public:
         }
     }
 
-    void findStableMatching() {
+    void findStableMatching() 
+    {
         if (maleOptimal) {
             findStableMatchingMaleOptimal();
         } else {
             findStableMatchingFemaleOptimal();
         }
     }
-    void findStableMatchingMaleOptimal()
+    void findStableMatchingMaleOptimal()   // Man gets to choose their best preference if available 
+                                           // whereas Woman accepts the first proposal and later changes according to better match  
     {
         std::queue<int> freeMen; // Queue of men who are currently single
         for (int i = 0; i < men.size(); ++i)
@@ -753,7 +757,9 @@ public:
         }
     }
 
-    void findStableMatchingFemaleOptimal() {
+    void findStableMatchingFemaleOptimal() // woman gets to choose their best preference if available 
+                                           // whereas man accepts the first proposal and later changes according to better match  
+    {
         std::queue<int> freeWomen; // Queue of women who are currently single
         for (int i = 0; i < women.size(); ++i) {
             freeWomen.push(i);
@@ -775,20 +781,26 @@ public:
 
             Person &man = men[manId];
 
-            if (man.partner == -1) {
+            if (man.partner == -1) // IF man is single make them partner
+            {
                 man.partner = womanId;
                 woman.partner = manId;
-            } else {
+            } 
+            else  // man is already partner
+            {
                 int currentPartnerId = man.partner;
                 int currentPartnerRank = std::find(man.preferences.begin(), man.preferences.end(), currentPartnerId) - man.preferences.begin();
                 int newWomanRank = std::find(man.preferences.begin(), man.preferences.end(), womanId) - man.preferences.begin();
 
-                if (newWomanRank < currentPartnerRank) {
+                if (newWomanRank < currentPartnerRank) // if new woman is a better match than the existing partner 
+                {
                     women[currentPartnerId].partner = -1;
-                    freeWomen.push(currentPartnerId);
+                    freeWomen.push(currentPartnerId); // make existing(current) partner woman single and make new woman the partner 
                     man.partner = womanId;
                     woman.partner = manId;
-                } else {
+                } 
+                else // woman remains single 
+                {
                     freeWomen.push(womanId);
                 }
             }
@@ -797,23 +809,23 @@ public:
     // Print the stable matching (including single individuals)
     void printMatching()
     {
-        std::cout << "Stable Matching:\n";
+        cout << "Stable Matching:\n";
         for (const Person &man : men)
         {
             if (man.partner != -1)
             {
-                std::cout << "Man " << man.id << " is paired with Woman " << man.partner << std::endl;
+                cout << "Man " << man.id << " is paired with Woman " << man.partner << std::endl;
             }
             else
             {
-                std::cout << "Man " << man.id << " is single.\n";
+                cout << "Man " << man.id << " is single.\n";
             }
         }
         for (const Person &woman : women)
         {
             if (woman.partner == -1)
             {
-                std::cout << "Woman " << woman.id << " is single.\n";
+                cout << "Woman " << woman.id << " is single.\n";
             }
         }
     }
@@ -824,18 +836,21 @@ int main()
     // Printing Heading in different colors
     // PrettyPrintColors();
     int numMen, numWomen;
-    std::cout << "Enter the number of men: ";
-    std::cin >> numMen;
-    std::cout << "Enter the number of women: ";
-    std::cin >> numWomen;
+    cout << "Enter the number of men: ";
+    cin >> numMen;
+    cout << "Enter the number of women: ";
+    cin >> numWomen;
 
     // Male-optimal matching
+    cout<<endl<<"---------------------------------"<<endl<<"Male-optimal matching"<<endl<<endl;
     StableMarriage smMale(numMen, numWomen, true);
     smMale.findStableMatching();
     std::cout << "\nMale-Optimal Matching:\n";
     smMale.printMatching();
 
     // Female-optimal matching
+    
+    cout<<endl<<"---------------------------------"<<endl<<"Female-optimal matching"<<endl<<endl;
     StableMarriage smFemale(numMen, numWomen, false);
     smFemale.findStableMatching();
     std::cout << "\nFemale-Optimal Matching:\n";
